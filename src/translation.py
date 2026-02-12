@@ -46,12 +46,18 @@ CRITICAL RULES:
 - Do NOT include phrases like "Alternative:", "Note:", "Primary:", or any meta-text
 - Do NOT add dashes (---), asterisks (**), or any formatting markers
 
-Translate the Korean transcript to natural, conversational English that:
-- Maintains the creator's personality and tone
-- Uses casual, engaging language appropriate for social media
-- Preserves slang, memes, and cultural references (explain if needed)
-- Matches the approximate length of the original for lip-sync compatibility
-- Keeps punctuation and emphasis markers
+LENGTH IS CRITICAL:
+- Korean and English take DIFFERENT amounts of time to speak
+- Your translation MUST be SHORT - aim for 80% or less of the Korean character count
+- Use contractions (I'm, don't, that's) aggressively
+- Cut unnecessary words ruthlessly
+- Prioritize brevity over perfect grammar
+
+Translation guidelines:
+- Maintain the creator's casual, social media tone
+- Use short, punchy phrases
+- Keep slang and personality
+- Stay within the character limit provided
 
 Output format: Just the translated text, nothing else."""
 
@@ -128,17 +134,30 @@ Output format: Just the translated text, nothing else."""
             if i > 0:
                 context = f"Previous: {translated_segments[-1]['text']}"
 
-            # Add timing constraint if needed
+            # Add strict timing constraint
             if preserve_timing:
-                timing_hint = f"\n\n[Note: Keep translation concise - original duration: {duration:.1f}s]"
+                # Calculate max character limit based on duration
+                # Rule: ~50 characters per second for natural speech in English
+                max_chars = int(duration * 50)
+                original_chars = len(original_text)
+
+                timing_hint = f"\n\n[STRICT LIMIT: Maximum {max_chars} characters. Original is {original_chars} chars in {duration:.1f}s. BE CONCISE.]"
                 original_text = original_text + timing_hint
 
             try:
                 translated_text = self.translate_text(original_text, context)
 
                 # Clean up timing hint if it leaked into translation
-                if '[Note:' in translated_text:
-                    translated_text = translated_text.split('[Note:')[0].strip()
+                if '[STRICT' in translated_text or '[Note:' in translated_text:
+                    translated_text = translated_text.split('[STRICT')[0].split('[Note:')[0].strip()
+
+                # Truncate if still too long (safety net)
+                if preserve_timing:
+                    max_chars = int(duration * 50)
+                    if len(translated_text) > max_chars:
+                        print(f"  ⚠️ Truncating segment {i+1} from {len(translated_text)} to {max_chars} chars")
+                        # Try to truncate at word boundary
+                        translated_text = translated_text[:max_chars].rsplit(' ', 1)[0] + '...'
 
                 translated_segments.append({
                     'id': segment['id'],
@@ -148,7 +167,7 @@ Output format: Just the translated text, nothing else."""
                     'original_text': segment['text']
                 })
 
-                print(f"  [{i+1}/{len(segments)}] ✓")
+                print(f"  [{i+1}/{len(segments)}] ✓ ({len(translated_text)} chars)")
 
             except Exception as e:
                 print(f"  [{i+1}/{len(segments)}] ❌ Error: {e}")

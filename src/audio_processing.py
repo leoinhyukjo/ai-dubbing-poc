@@ -89,7 +89,8 @@ class AudioProcessor:
         segment_files: List[str],
         timestamps: List[Tuple[float, float]],
         output_path: str,
-        sample_rate: Optional[int] = None
+        sample_rate: Optional[int] = None,
+        enable_time_stretch: bool = True
     ) -> str:
         """
         Combine multiple audio segments into a single file with proper timing
@@ -99,6 +100,7 @@ class AudioProcessor:
             timestamps: List of (start, end) timestamps in seconds
             output_path: Path for output combined audio
             sample_rate: Optional sample rate (defaults to config)
+            enable_time_stretch: Apply time-stretching to match expected duration
 
         Returns:
             Path to combined audio file
@@ -107,6 +109,8 @@ class AudioProcessor:
             sample_rate = self.sample_rate
 
         print(f"🔗 Combining {len(segment_files)} audio segments...")
+        if enable_time_stretch:
+            print(f"   Time-stretching enabled for duration matching")
 
         # Calculate total duration
         total_duration = max([end for start, end in timestamps])
@@ -119,6 +123,7 @@ class AudioProcessor:
 
         # Overlay each segment at its timestamp
         combined = silence
+        stretched_count = 0
 
         for i, (audio_file, (start, end)) in enumerate(zip(segment_files, timestamps)):
             if audio_file is None or not os.path.exists(audio_file):
@@ -126,8 +131,31 @@ class AudioProcessor:
                 continue
 
             try:
-                # Load segment
+                # Expected duration
+                expected_duration = end - start
+
+                # Load segment to check actual duration
                 segment = AudioSegment.from_file(audio_file)
+                actual_duration = len(segment) / 1000.0  # Convert ms to seconds
+
+                # Time-stretch if needed (tolerance: 5% difference)
+                duration_ratio = actual_duration / expected_duration
+                if enable_time_stretch and abs(duration_ratio - 1.0) > 0.05:
+                    # Create temp file for stretched audio
+                    temp_stretched = audio_file.replace('.mp3', '_stretched.wav')
+
+                    # Apply time-stretching using librosa
+                    self.match_audio_duration(audio_file, expected_duration, temp_stretched)
+
+                    # Load the stretched audio
+                    segment = AudioSegment.from_file(temp_stretched)
+                    stretched_count += 1
+
+                    # Clean up temp file
+                    try:
+                        os.remove(temp_stretched)
+                    except:
+                        pass
 
                 # Convert to target sample rate if needed
                 if segment.frame_rate != sample_rate:
@@ -151,6 +179,8 @@ class AudioProcessor:
         # Export combined audio
         combined.export(output_path, format="wav")
         print(f"✓ Combined audio saved: {output_path}")
+        if enable_time_stretch:
+            print(f"   Time-stretched segments: {stretched_count}/{len(segment_files)}")
 
         return output_path
 

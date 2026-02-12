@@ -1,0 +1,68 @@
+# AI Dubbing Configuration
+
+# ASR (Automatic Speech Recognition)
+asr:
+  provider: "whisper"           # whisper-local or whisper-api
+  model: "large-v3"             # tiny, base, small, medium, large, large-v3
+  language: "ko"                # Source language
+  device: "cpu"                 # cpu or cuda (for local Whisper)
+
+# Translation
+translation:
+  provider: "claude"            # claude (recommended) or openai
+  model: "claude-sonnet-4-5-20250929"  # Claude: claude-sonnet-4-5-20250929, OpenAI: gpt-4o
+  target_language: "en"
+  # Custom prompt for maintaining tone and style
+  system_prompt: |
+    You are a professional video subtitle translator specializing in YouTube content.
+    Translate the Korean transcript to natural, conversational English that:
+    - Maintains the creator's personality and tone
+    - Uses casual, engaging language appropriate for social media
+    - Preserves slang, memes, and cultural references (explain if needed)
+    - Matches the approximate length of the original for lip-sync compatibility
+    - Keeps punctuation and emphasis markers
+
+# Voice Cloning
+voice_cloning:
+  provider: "elevenlabs"        # elevenlabs or respeecher
+
+  # ElevenLabs settings
+  elevenlabs:
+    model: "eleven_multilingual_v2"
+    stability: 0.5              # 0-1, higher = more stable but less expressive
+    similarity_boost: 0.75      # 0-1, higher = closer to original voice
+    style: 0.0                  # 0-1, exaggeration of style
+    use_speaker_boost: true
+
+  # Respeecher settings (if using)
+  respeecher:
+    emotion_preservation: true
+    breathing_sounds: true
+
+# Audio Processing
+audio:
+  sample_rate: 44100
+  channels: 1                   # mono
+  format: "wav"
+
+  # BGM separation (optional but recommended)
+  separate_bgm: true
+  demucs_model: "htdemucs"      # htdemucs or htdemucs_ft
+
+  # Audio mixing
+  voice_volume: 1.0             # Multiplier for dubbed voice
+  bgm_volume: 0.3               # Multiplier for background music
+
+# Video Synthesis
+video:
+  output_format: "mp4"
+  video_codec: "libx264"
+  audio_codec: "aac"
+  quality: "high"               # low, medium, high
+  fps: null                     # null = keep original
+
+# Pipeline
+pipeline:
+  temp_dir: "./temp"
+  keep_temp_files: false
+  verbose: true

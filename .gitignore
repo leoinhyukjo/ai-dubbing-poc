@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+temp/
+*.tmp
+.DS_Store
+
+# Output files
+output/
+*.mp4
+*.mov
+*.avi
+*.wav
+*.mp3
+
+# Model files (if downloading local models)
+models/
+*.pt
+*.pth
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Voice IDs (keep this private)
+voice_ids.txt

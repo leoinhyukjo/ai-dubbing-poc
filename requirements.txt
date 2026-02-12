@@ -1,0 +1,21 @@
+# Core Dependencies
+anthropic>=0.18.0           # Claude API (recommended for translation)
+openai>=1.12.0              # GPT-4o API & Whisper API (optional for translation)
+openai-whisper>=20231117    # Local Whisper (optional, for offline)
+elevenlabs>=0.2.27          # ElevenLabs Voice Cloning
+python-dotenv>=1.0.0        # Environment variables
+pyyaml>=6.0.1               # Configuration
+
+# Audio/Video Processing
+pydub>=0.25.1               # Audio manipulation
+librosa>=0.10.1             # Audio analysis
+soundfile>=0.12.1           # Audio I/O
+ffmpeg-python>=0.2.0        # FFmpeg wrapper
+moviepy>=1.0.3              # Video editing
+
+# Audio Source Separation (Optional but Recommended)
+demucs>=4.0.0               # Vocal/BGM separation
+
+# Utilities
+tqdm>=4.66.0                # Progress bars
+requests>=2.31.0            # HTTP requests

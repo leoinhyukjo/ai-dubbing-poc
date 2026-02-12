@@ -1,0 +1,15 @@
+./PROJECT_STRUCTURE.txt
+./README.md
+./config.yaml
+./examples/create_voice_clone.py
+./examples/simple_dubbing.py
+./pipeline.py
+./requirements.txt
+./setup.bat
+./setup.sh
+./src/__init__.py
+./src/asr_module.py
+./src/audio_processing.py
+./src/translation.py
+./src/video_synthesis.py
+./src/voice_cloning.py

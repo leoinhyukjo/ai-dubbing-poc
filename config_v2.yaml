@@ -1,0 +1,50 @@
+# Emotion-Aware Dubbing V2 Configuration
+
+# Emotion Analysis
+emotion:
+  model: "speechbrain/emotion-recognition-wav2vec2-IEMOCAP"
+  use_prosody: true
+
+# ASR (unchanged from V1)
+asr:
+  provider: "whisper"
+  model: "large-v3"
+  language: "ko"
+  device: "cpu"
+
+# Translation (unchanged from V1)
+translation:
+  provider: "claude"
+  model: "claude-sonnet-4-5-20250929"
+  target_language: "en"
+
+# TTS with Emotion Control (NEW)
+tts:
+  provider: "azure"
+  voice_name: "en-US-JennyNeural"
+
+# Voice Conversion (NEW)
+voice_conversion:
+  provider: "rvc"
+  model_name: "creator_voice"
+  pitch_shift: 0
+  index_rate: 0.3
+
+# Audio Processing
+audio:
+  sample_rate: 24000
+  channels: 1
+  alignment_method: "dtw"
+
+# Video Synthesis (unchanged from V1)
+video:
+  output_format: "mp4"
+  video_codec: "libx264"
+  audio_codec: "aac"
+  quality: "high"
+
+# Pipeline
+pipeline:
+  temp_dir: "./temp"
+  keep_temp_files: true
+  verbose: true

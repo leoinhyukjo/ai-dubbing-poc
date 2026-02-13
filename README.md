@@ -27,6 +27,13 @@
 - **자동 자막 생성**: SRT 형식 자막 자동 생성
 - **비디오 합성**: FFmpeg를 사용한 고품질 최종 영상 생성
 
+### 🆕 Pipeline V2: 감정 보존 더빙 (Beta)
+- **감정 분석**: SpeechBrain으로 원본 음성의 감정 자동 감지 (기쁨, 슬픔, 분노, 중립)
+- **운율 추출**: librosa로 피치, 에너지, 말하기 속도 분석
+- **감정 제어 TTS**: Azure Neural TTS + SSML로 감정을 반영한 음성 합성
+- **보이스 변환**: RVC로 크리에이터 목소리 적용 (감정/운율 유지)
+- **자연스러운 타이밍**: time-stretching 없이 자연스러운 발화
+
 ### 📊 성능 지표
 - **비용**: 전통적 성우 더빙 대비 **100배 절감** ($50-300/분 → $0.5-10/분)
 - **시간**: 제작 기간 **90% 단축** (수 주 → 72시간 이내)
@@ -36,6 +43,8 @@
 ---
 
 ## 🏗️ 시스템 아키텍처
+
+### Pipeline V1 (ElevenLabs 기반)
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -82,6 +91,55 @@
             │  + 자막 파일  │
             └──────────────┘
 ```
+
+### Pipeline V2 (감정 보존 기반 - Beta)
+
+```
+┌──────────────────────────────────────────────┐
+│              한국어 오디오 입력                │
+└──────────────────┬───────────────────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  STAGE 1: 감정 분석         │
+    │  • SpeechBrain: 감정 감지  │
+    │  • librosa: 운율 추출      │
+    │  → EmotionProfile 생성     │
+    └──────────────┬──────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  STAGE 2: ASR + 번역        │
+    │  • Whisper Large-v3        │
+    │  • Claude 번역 (길이 제어) │
+    └──────────────┬──────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  STAGE 3: 감정 제어 TTS     │
+    │  • Azure Neural TTS        │
+    │  • SSML 감정/운율 태그     │
+    │  • 자연스러운 영어 발화    │
+    └──────────────┬──────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  STAGE 4: 보이스 변환       │
+    │  • RVC v2                  │
+    │  • 크리에이터 목소리 적용  │
+    │  • 감정/운율 보존          │
+    └──────────────┬──────────────┘
+                   │
+            ┌──────▼───────┐
+            │  더빙된 오디오 │
+            └──────────────┘
+```
+
+### V1 vs V2 비교
+
+| 기능 | V1 | V2 |
+|------|----|----|
+| 감정 보존 | 없음 | 자동 감지 및 전달 |
+| 음성 품질 | ~90% | 95-97% (목표) |
+| 타이밍 | Time-stretching (아티팩트) | 자연스러운 타이밍 |
+| 보이스 | ElevenLabs 클로닝 | RVC 변환 (감정 유지) |
+| 월 비용 | ~$400 | ~$500 |
 
 ---
 
@@ -296,18 +354,27 @@ if results['status'] == 'success':
 
 ## 🗺️ 로드맵
 
-### ✅ Phase 1: PoC (현재)
-- [x] 기본 파이프라인 구축
+### ✅ Phase 1: PoC (완료)
+- [x] 기본 파이프라인 구축 (V1)
 - [x] ElevenLabs/Respeecher 통합
 - [x] 단일 언어 (한→영) 지원
 - [x] 명령줄 인터페이스
 
+### ✅ Phase 1.5: 감정 보존 파이프라인 (완료)
+- [x] SpeechBrain 감정 분석 모듈
+- [x] librosa 운율 추출 모듈
+- [x] Azure Neural TTS + SSML 감정 제어
+- [x] RVC 보이스 변환 래퍼
+- [x] V2 통합 파이프라인
+- [x] 단위 테스트 (16 passed)
+
 ### 🚧 Phase 2: MVP (다음 단계)
+- [ ] DTW 정렬 (세그먼트별 타이밍 맞춤)
+- [ ] BGM 분리/믹싱 통합
+- [ ] 비디오 합성 연동
 - [ ] 웹 UI 구축 (Streamlit/Gradio)
 - [ ] 다국어 동시 지원 (영어, 일본어, 중국어)
-- [ ] STS (Speech-to-Speech) 모드 추가
 - [ ] 배치 처리 기능
-- [ ] 품질 자동 평가 시스템
 
 ### 🔮 Phase 3: 프로덕션
 - [ ] 클라우드 배포 (AWS/GCP)
@@ -408,18 +475,23 @@ Warning: BGM separation failed
 
 ---
 
-## Pipeline V2: Emotion-Aware Dubbing (Beta)
+## 🆕 Pipeline V2: 감정 보존 더빙 (Beta)
 
-We've built a next-generation pipeline that achieves **95-97% native quality** by automatically preserving emotional content.
+원본 한국어 음성의 **감정과 운율을 자동으로 분석**하여 영어 더빙에 반영하는 차세대 파이프라인입니다.
 
-### Key Features
-- Automatic emotion detection (happy, sad, angry, neutral)
-- Prosody extraction (pitch, energy, speaking rate)
-- Emotion-controlled TTS (Azure Neural with SSML)
-- Voice conversion (RVC for creator's voice)
-- Natural timing (no time-stretching artifacts)
+### 추가 요구사항
 
-### Quick Start
+V1의 기본 설정에 더해 다음이 필요합니다:
+
+```bash
+# Azure Speech Services API 키 (.env에 추가)
+AZURE_SPEECH_KEY=your-azure-speech-key
+AZURE_SPEECH_REGION=eastus
+```
+
+RVC 모델 훈련이 필요합니다: [RVC 훈련 가이드](docs/RVC_TRAINING.md)
+
+### 사용법
 
 ```python
 from src.pipeline_v2 import EmotionAwareDubbingPipeline
@@ -428,4 +500,13 @@ pipeline = EmotionAwareDubbingPipeline('config_v2.yaml')
 results = pipeline.process_audio('input.wav', 'output.wav')
 ```
 
-**Full Documentation**: [PIPELINE_V2_GUIDE.md](docs/PIPELINE_V2_GUIDE.md)
+### 기술 스택
+
+| 모듈 | 기술 | 역할 |
+|------|------|------|
+| 감정 분석 | SpeechBrain wav2vec2 | 기쁨/슬픔/분노/중립 감지 |
+| 운율 추출 | librosa | 피치, 에너지, 말하기 속도 |
+| TTS | Azure Neural TTS | SSML 감정 제어 음성 합성 |
+| 보이스 변환 | RVC v2 | 크리에이터 목소리 적용 |
+
+**상세 문서**: [Pipeline V2 가이드](docs/PIPELINE_V2_GUIDE.md)

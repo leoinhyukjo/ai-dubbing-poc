@@ -19,3 +19,9 @@ demucs>=4.0.0               # Vocal/BGM separation
 # Utilities
 tqdm>=4.66.0                # Progress bars
 requests>=2.31.0            # HTTP requests
+
+# Emotion Analysis (V2)
+speechbrain>=1.0.0
+torchaudio>=2.0.0
+transformers>=4.30.0,<5.0.0   # HuggingFace Transformers (for wav2vec2 model)
+torchcodec>=0.10.0             # Audio decoding backend for torchaudio 2.10+

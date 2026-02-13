@@ -30,6 +30,7 @@ output/
 
 # Model files (if downloading local models)
 models/
+wav2vec2_checkpoints/
 *.pt
 *.pth
 
